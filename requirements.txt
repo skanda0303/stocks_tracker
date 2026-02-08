@@ -5,4 +5,3 @@ yfinance
 pandas
 requests
 apscheduler
-chartjs-adapter-date-fns
