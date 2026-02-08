@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+sqlalchemy
+yfinance
+pandas
+requests
+apscheduler
+chartjs-adapter-date-fns

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Price Tracker</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">📈</span>
+                <h1>Market<span class="highlight">Watch</span></h1>
+            </div>
+            <div class="status-bar">
+                <span id="last-updated">Updating...</span>
+                <button id="refresh-btn" class="btn-refresh">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6"></path>
+                        <path d="M1 20v-6h6"></path>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div class="summary-cards">
+                <div class="card summary-card">
+                    <h3>Tracking</h3>
+                    <p id="total-stocks">0</p>
+                </div>
+                <div class="card summary-card">
+                    <h3>Low Price Alerts</h3>
+                    <p id="low-stocks" class="text-green">0</p>
+                </div>
+            </div>
+
+            <div class="stock-grid" id="stock-list">
+                <!-- Stock cards will be injected here -->
+                <div class="loading-spinner">Loading stocks...</div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js?v=1.2"></script>
+</body>
+
+</html>

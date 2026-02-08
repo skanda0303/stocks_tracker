@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Details - MarketWatch</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js & Plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
+    <style>
+        .details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .back-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .back-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .big-price {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            height: 400px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <a href="index.html" class="back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5"></path>
+                <path d="M12 19l-7-7 7-7"></path>
+            </svg>
+            Back to Dashboard
+        </a>
+
+        <div class="details-header">
+            <div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <h1 id="stock-symbol">...</h1>
+                    <button id="notify-btn" class="btn-primary"
+                        style="padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; background: #0088cc;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 2L11 13"></path>
+                            <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                        </svg>
+                        Send Alert
+                    </button>
+                </div>
+                <span id="stock-name" style="color: var(--text-secondary);">...</span>
+            </div>
+            <div class="text-right">
+                <div id="stock-price" class="big-price">...</div>
+                <div id="stock-change" class="change-percent" style="font-size: 1.25rem;">...</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="priceChart"></canvas>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Market Cap</div>
+                <div class="stat-value" id="market-cap">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Volume</div>
+                <div class="stat-value" id="volume">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">P/E Ratio</div>
+                <div class="stat-value" id="pe-ratio">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">52W High</div>
+                <div class="stat-value" id="week-high">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">52W Low</div>
+                <div class="stat-value" id="week-low">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">7-Day Avg</div>
+                <div class="stat-value" id="seven-day-avg">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">7-Day High</div>
+                <div class="stat-value" id="seven-day-max">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">7-Day Low</div>
+                <div class="stat-value" id="seven-day-min">-</div>
+            </div>
+            <div class="stat-card" style="border: 1px solid #fbbf24;">
+                <div class="stat-label" style="color: #fbbf24;">250-Day Low (1Y)</div>
+                <div class="stat-value" id="two-fifty-day-low">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Status</div>
+                <div class="stat-value" id="status-badge">-</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 2rem;">
+            <h3>Analysis</h3>
+            <p id="analysis-details" style="color: var(--text-secondary); margin-top: 0.5rem;"></p>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const symbol = urlParams.get('symbol');
+
+        if (!symbol) window.location.href = 'index.html';
+
+        document.getElementById('stock-symbol').textContent = symbol;
+
+        // Fetch Details
+        fetch(`/api/stocks/${symbol}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('stock-name').textContent = data.name;
+                document.getElementById('stock-price').textContent = `₹${data.price.toFixed(2)}`;
+
+                const changeEl = document.getElementById('stock-change');
+                const isUp = data.change >= 0;
+                changeEl.textContent = `${isUp ? '+' : ''}${data.change.toFixed(2)}%`;
+                changeEl.className = `change-percent ${isUp ? 'text-green' : 'text-red'}`;
+
+                document.getElementById('market-cap').textContent = formatNumber(data.market_cap);
+                document.getElementById('volume').textContent = formatNumber(data.volume);
+                document.getElementById('pe-ratio').textContent = data.pe_ratio ? data.pe_ratio.toFixed(2) : '-';
+                document.getElementById('week-high').textContent = data.fifty_two_week_high ? `₹${data.fifty_two_week_high.toFixed(2)}` : '-';
+                document.getElementById('week-low').textContent = data.fifty_two_week_low ? `₹${data.fifty_two_week_low.toFixed(2)}` : '-';
+
+                // 7-Day Stats
+                document.getElementById('seven-day-avg').textContent = data.seven_day_avg ? `₹${data.seven_day_avg.toFixed(2)}` : '-';
+                document.getElementById('seven-day-max').textContent = data.seven_day_max ? `₹${data.seven_day_max.toFixed(2)}` : '-';
+                document.getElementById('seven-day-min').textContent = data.seven_day_min ? `₹${data.seven_day_min.toFixed(2)}` : '-';
+                document.getElementById('two-fifty-day-low').textContent = data.two_fifty_day_low ? `₹${data.two_fifty_day_low.toFixed(2)}` : '-';
+
+                const badge = document.getElementById('status-badge');
+                badge.textContent = data.status;
+                badge.className = `badge ${data.status.toLowerCase()}`;
+
+                document.getElementById('analysis-details').textContent = data.details;
+            });
+
+        // Add Notify Button Logic
+        document.getElementById('notify-btn').addEventListener('click', () => {
+            const btn = document.getElementById('notify-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Sending...';
+            btn.disabled = true;
+
+            fetch(`/api/notify/${symbol}`, { method: 'POST' })
+                .then(res => {
+                    if (res.ok) {
+                        btn.innerHTML = 'Sent!';
+                        btn.style.background = '#10b981';
+                    } else {
+                        btn.innerHTML = 'Failed';
+                        btn.style.background = '#ef4444';
+                    }
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '#0088cc';
+                        btn.disabled = false;
+                    }, 2000);
+                })
+                .catch(() => {
+                    btn.innerHTML = 'Error';
+                    btn.style.background = '#ef4444';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '#0088cc';
+                        btn.disabled = false;
+                    }, 2000);
+                });
+        });
+
+        // Fetch History & Render Chart (Daily for 1-2 Years)
+        // Requesting 2y to ensure we have enough data for the "1-2 years" requirement
+        fetch(`/api/history/${symbol}?period=2y&interval=1d`)
+            .then(res => res.json())
+            .then(history => {
+                const ctx = document.getElementById('priceChart').getContext('2d');
+                const prices = history.map(h => h.close);
+                const labels = history.map(h => h.date);
+
+                // Range Calculation
+                const firstTimestamp = new Date(labels[0]).getTime();
+                const lastTimestamp = new Date(labels[labels.length - 1]).getTime();
+
+                // Gradient
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+                gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Price (₹)',
+                            data: prices,
+                            borderColor: '#10b981',
+                            backgroundColor: gradient,
+                            borderWidth: 1.5,
+                            fill: true,
+                            tension: 0.1,
+                            pointRadius: 0,
+                            pointHoverRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            zoom: {
+                                pan: {
+                                    enabled: true,
+                                    mode: 'x',
+                                    threshold: 10,
+                                },
+                                zoom: {
+                                    wheel: { enabled: true },
+                                    pinch: { enabled: true },
+                                    mode: 'x',
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                min: firstTimestamp, // Stick to start of 2y data
+                                max: lastTimestamp,  // Stick to today
+                                time: {
+                                    unit: 'month',
+                                    displayFormats: {
+                                        month: 'MMM yyyy',
+                                        day: 'dd MMM'
+                                    },
+                                    tooltipFormat: 'dd MMM yyyy'
+                                },
+                                grid: { color: 'rgba(255, 255, 255, 0.02)' },
+                                ticks: {
+                                    color: '#64748b',
+                                    maxRotation: 0,
+                                    autoSkip: true,
+                                    maxTicksLimit: 10
+                                }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: {
+                                    color: '#94a3b8',
+                                    callback: function (value) { return '₹' + value; }
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        }
+                    }
+                });
+            });
+
+        function formatNumber(num) {
+            if (!num) return '-';
+            if (num >= 1.0e+7) return (num / 1.0e+7).toFixed(2) + " Cr";
+            if (num >= 1.0e+5) return (num / 1.0e+5).toFixed(2) + " Lk";
+            return num.toLocaleString();
+        }
+    </script>
+</body>
+
+</html>
