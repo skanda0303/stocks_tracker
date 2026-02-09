@@ -58,7 +58,8 @@ def create_tables_and_seed():
                 ("ITC.NS", "ITC Ltd"),
                 ("LT.NS", "Larsen & Toubro"),
                 ("AXISBANK.NS", "Axis Bank"),
-                ("WIPRO.NS", "Wipro")
+                ("WIPRO.NS", "Wipro"),
+                ("TATAGOLD.NS", "Tata Gold ETF")
             ]
             for symbol, name in initial_stocks:
                 db_stock = Stock(symbol=symbol, name=name)

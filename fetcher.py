@@ -30,8 +30,10 @@ def analyze_stock(symbol):
     print(f"Fetching data for {symbol}...")
     try:
         ticker = yf.Ticker(symbol)
-        # Fetch 2y history to ensure we have 250 trading days
-        hist = ticker.history(period="2y")
+        
+        # Optimization: Fetch 1mo for daily/weekly stats, 2y only if needed for yearly stats
+        # For real-time updates, 1d or 5d is enough for price and change
+        hist = ticker.history(period="1mo")
         
         if hist.empty:
             print(f"No data found for {symbol} (History Empty)")
@@ -40,22 +42,25 @@ def analyze_stock(symbol):
         print(f"Fetched {len(hist)} rows for {symbol}")
         current_price = hist['Close'].iloc[-1]
         
-        # Calculate calculated metrics
-        # 1. 20-day Moving Average (SMA)
-        ma_20 = hist['Close'].rolling(window=20).mean().iloc[-1]
+        # Calculate moving averages and stats
+        ma_20 = hist['Close'].rolling(window=20).mean().iloc[-1] if len(hist) >= 20 else hist['Close'].mean()
         
         # 2. 7-day Average & Low
         seven_day_avg = hist['Close'].tail(7).mean()
         seven_day_low = hist['Close'].tail(7).min()
         
-        # 3. 250-day Low & Avg (Roughly 1 year)
-        if len(hist) >= 250:
-            last_250 = hist['Close'].tail(250)
-            two_fifty_day_low = last_250.min()
-            two_fifty_day_avg = last_250.mean()
+        # For 250-day stats, we might need a longer history
+        # To save time, we can fetch 2y only if strictly necessary or once an hour
+        # But for now, let's just fetch 1y which is usually enough for "250 days"
+        # Actually, let's stick to 1mo for fast updates and fetch 2y separately if needed
+        # OR just fetch 1y once. 1y is 252 trading days.
+        hist_1y = ticker.history(period="1y")
+        if not hist_1y.empty:
+            two_fifty_day_low = hist_1y['Close'].min()
+            two_fifty_day_avg = hist_1y['Close'].mean()
         else:
-            two_fifty_day_low = hist['Close'].min() # Fallback
-            two_fifty_day_avg = hist['Close'].mean()
+            two_fifty_day_low = seven_day_low
+            two_fifty_day_avg = seven_day_avg
 
         # 4. 30-day Range
         last_30_days = hist['Close'].tail(30)
@@ -80,20 +85,15 @@ def analyze_stock(symbol):
             
         # Condition B: Price within bottom 20% of 30-day range
         range_30 = max_30 - min_30
-        threshold_20_percent = min_30 + (range_30 * 0.20)
+        threshold_20_percent = min_30 + (range_30 * 0.20) if range_30 > 0 else min_30
         if current_price <= threshold_20_percent:
-            reasons.append(f"In bottom 20% of 30-day range ( Low: {min_30:.2f} )")
+            reasons.append(f"In bottom 20% of 30-day range")
             is_low = True
             
-        # Condition C: Drop from 30-day high (e.g. > 15% drop)
-        drop_from_high = ((max_30 - current_price) / max_30) * 100
-        if drop_from_high >= 15:
-            reasons.append(f"Dropped {drop_from_high:.1f}% from 30-day high ({max_30:.2f})")
+        # Special Condition: Near 250-day low
+        if current_price <= two_fifty_day_low * 1.01:
+            reasons.append(f"Near 250-day low")
             is_low = True
-
-        # Special Condition: Below 250-day low
-        if current_price <= two_fifty_day_low:
-            reasons.append(f"At/Below 250-day low ({two_fifty_day_low:.2f})")
 
         # Logic to fetch extended info
         try:

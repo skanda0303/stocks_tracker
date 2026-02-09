@@ -38,7 +38,8 @@ def add_stocks():
             ("DRREDDY.NS", "Dr. Reddy's"),
             ("IOC.NS", "Indian Oil"),
             ("BPCL.NS", "BPCL"),
-            ("BRITANNIA.NS", "Britannia Industries")
+            ("BRITANNIA.NS", "Britannia Industries"),
+            ("TATAGOLD.NS", "Tata Gold ETF")
         ]
         
         for symbol, name in stocks_to_add:
